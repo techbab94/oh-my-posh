@@ -346,7 +346,7 @@ func TestAgnosterPathStyles(t *testing.T) {
 		},
 		{
 			Style:               Letter,
-			Expected:            "C: > ",
+			Expected:            "C:\\",
 			HomePath:            homeDirWindows,
 			Pwd:                 "C:\\",
 			GOOS:                platform.WINDOWS,
@@ -645,7 +645,7 @@ func TestAgnosterPathStyles(t *testing.T) {
 		},
 		{
 			Style:               AgnosterShort,
-			Expected:            "C: | ",
+			Expected:            "C:/",
 			HomePath:            homeDir,
 			Pwd:                 "/mnt/c",
 			Pswd:                "C:",
@@ -676,7 +676,7 @@ func TestAgnosterPathStyles(t *testing.T) {
 		},
 		{
 			Style:               AgnosterShort,
-			Expected:            "C: > ",
+			Expected:            "C:\\",
 			HomePath:            homeDirWindows,
 			Pwd:                 "C:",
 			GOOS:                platform.WINDOWS,
@@ -1385,6 +1385,177 @@ func TestAgnosterLeftPath(t *testing.T) {
 		}
 		path.setPaths()
 		path.setStyle()
+		got := renderTemplateNoTrimSpace(env, "{{ .Path }}", path)
+		assert.Equal(t, tc.Expected, got, tc.Case)
+	}
+}
+
+func TestAgnosterRightPath(t *testing.T) {
+	cases := []struct {
+		Case          string
+		Expected      string
+		Home          string
+		PWD           string
+		GOOS          string
+		MaxWidth      int
+		PathSeparator string
+	}{
+		{
+			Case:          "Windows inside home, no max width",
+			Expected:      "~ > Documents > Bill > location",
+			Home:          homeDirWindows,
+			PWD:           homeDirWindows + "\\Documents\\Bill\\location",
+			GOOS:          platform.WINDOWS,
+			PathSeparator: "\\",
+		},
+		{
+			Case:          "Windows inside home zero levels, no max width",
+			Expected:      "C: > location",
+			Home:          homeDirWindows,
+			PWD:           "C:\\location",
+			GOOS:          platform.WINDOWS,
+			PathSeparator: "\\",
+		},
+		{
+			Case:          "Windows root drive, no max width",
+			Expected:      "C:\\",
+			Home:          homeDirWindows,
+			PWD:           "C:\\",
+			GOOS:          platform.WINDOWS,
+			PathSeparator: "\\",
+		},
+		{
+			Case:          "Windows inside home one level, maxwidth 24",
+			Expected:      "C: > Program Files > location",
+			Home:          homeDirWindows,
+			PWD:           "C:\\Program Files\\location",
+			GOOS:          platform.WINDOWS,
+			PathSeparator: "\\",
+			MaxWidth:      24,
+		},
+		{
+			Case:          "Windows inside home one level, maxwidth 20",
+			Expected:      "C: > f > location",
+			Home:          homeDirWindows,
+			PWD:           "C:\\Program Files\\location",
+			GOOS:          platform.WINDOWS,
+			PathSeparator: "\\",
+			MaxWidth:      20,
+		},
+		// {
+		// 	Case:          "Windows lower case drive letter",
+		// 	Expected:      "C: > Windows",
+		// 	Home:          homeDirWindows,
+		// 	PWD:           "C:\\Windows\\",
+		// 	GOOS:          platform.WINDOWS,
+		// 	PathSeparator: "\\",
+		// },
+		// {
+		// 	Case:          "Windows lower case drive letter (other)",
+		// 	Expected:      "P: > Other",
+		// 	Home:          homeDirWindows,
+		// 	PWD:           "P:\\Other\\",
+		// 	GOOS:          platform.WINDOWS,
+		// 	PathSeparator: "\\",
+		// },
+		// {
+		// 	Case:          "Windows lower word drive",
+		// 	Expected:      "some: > some",
+		// 	Home:          homeDirWindows,
+		// 	PWD:           "some:\\some\\",
+		// 	GOOS:          platform.WINDOWS,
+		// 	PathSeparator: "\\",
+		// },
+		// {
+		// 	Case:          "Windows lower word drive (ending with c)",
+		// 	Expected:      "src: > source",
+		// 	Home:          homeDirWindows,
+		// 	PWD:           "src:\\source\\",
+		// 	GOOS:          platform.WINDOWS,
+		// 	PathSeparator: "\\",
+		// },
+		// {
+		// 	Case:          "Windows lower word drive (arbitrary cases)",
+		// 	Expected:      "sRc: > source",
+		// 	Home:          homeDirWindows,
+		// 	PWD:           "sRc:\\source\\",
+		// 	GOOS:          platform.WINDOWS,
+		// 	PathSeparator: "\\",
+		// },
+		// {
+		// 	Case:          "Windows registry drive",
+		// 	Expected:      "\uf013 > SOFTWARE > f",
+		// 	Home:          homeDirWindows,
+		// 	PWD:           "HKLM:\\SOFTWARE\\magnetic:test\\",
+		// 	GOOS:          platform.WINDOWS,
+		// 	PathSeparator: "\\",
+		// },
+		// {
+		// 	Case:          "Windows registry drive case sensitive",
+		// 	Expected:      "\uf013 > SOFTWARE > f",
+		// 	Home:          homeDirWindows,
+		// 	PWD:           "HKLM:\\SOFTWARE\\magnetic:TOAST\\",
+		// 	GOOS:          platform.WINDOWS,
+		// 	PathSeparator: "\\",
+		// },
+		// {
+		// 	Case:          "Unix outside home",
+		// 	Expected:      "mnt > go > f > f",
+		// 	Home:          homeDir,
+		// 	PWD:           "/mnt/go/test/location",
+		// 	PathSeparator: "/",
+		// },
+		// {
+		// 	Case:          "Unix inside home",
+		// 	Expected:      "~ > docs > f > f",
+		// 	Home:          homeDir,
+		// 	PWD:           homeDir + "/docs/jan/location",
+		// 	PathSeparator: "/",
+		// },
+		// {
+		// 	Case:          "Unix outside home zero levels",
+		// 	Expected:      "mnt > location",
+		// 	Home:          homeDir,
+		// 	PWD:           "/mnt/location",
+		// 	PathSeparator: "/",
+		// },
+		// {
+		// 	Case:          "Unix outside home one level",
+		// 	Expected:      "mnt > folder > f",
+		// 	Home:          homeDir,
+		// 	PWD:           "/mnt/folder/location",
+		// 	PathSeparator: "/",
+		// },
+	}
+
+	for _, tc := range cases {
+		env := new(mock.MockedEnvironment)
+		env.On("Home").Return(tc.Home)
+		env.On("PathSeparator").Return(tc.PathSeparator)
+		env.On("Pwd").Return(tc.PWD)
+		env.On("GOOS").Return(tc.GOOS)
+		args := &platform.Flags{
+			PSWD: tc.PWD,
+		}
+
+		env.On("Flags").Return(args)
+		env.On("Shell").Return(shell.PWSH)
+		env.On("DebugF", mock2.Anything, mock2.Anything).Return(nil)
+
+		path := &Path{
+			env: env,
+			props: properties.Map{
+				properties.Style:    AgnosterRight,
+				FolderSeparatorIcon: " > ",
+				FolderIcon:          "f",
+				HomeIcon:            "~",
+				MaxWidth:            tc.MaxWidth,
+			},
+		}
+
+		path.setPaths()
+		path.setStyle()
+
 		got := renderTemplateNoTrimSpace(env, "{{ .Path }}", path)
 		assert.Equal(t, tc.Expected, got, tc.Case)
 	}

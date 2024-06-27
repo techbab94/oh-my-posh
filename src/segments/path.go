@@ -61,6 +61,8 @@ const (
 	Letter string = "letter"
 	// Unique like agnoster, but with the first unique letters of each folder name
 	Unique string = "unique"
+	// AgnosterRight like agnoster, but keeps the right side of the path
+	AgnosterRight string = "agnoster_right"
 	// AgnosterLeft like agnoster, but keeps the left side of the path
 	AgnosterLeft string = "agnoster_left"
 	// Powerlevel tries to mimic the powerlevel10k path,
@@ -183,7 +185,7 @@ func (pt *Path) setStyle() {
 		pt.Path = pt.root
 
 		if strings.HasSuffix(pt.Path, ":") {
-			pt.Path += pt.getFolderSeparator()
+			pt.Path += pt.pathSeparator
 		}
 
 		return
@@ -204,6 +206,9 @@ func (pt *Path) setStyle() {
 		pt.Path = pt.getUniqueLettersPath(0)
 	case AgnosterLeft:
 		pt.Path = pt.getAgnosterLeftPath()
+	case AgnosterRight:
+		maxWidth := pt.getMaxWidth()
+		pt.Path = pt.getAgnosterRightPath(maxWidth)
 	case Short:
 		// "short" is a duplicate of "full", just here for backwards compatibility
 		fallthrough
@@ -324,6 +329,59 @@ func (pt *Path) getAgnosterPath() string {
 	}
 
 	return pt.colorizePath(pt.root, elements)
+}
+
+func (pt *Path) getAgnosterRightPath(maxWidth int) string {
+	folderIcon := pt.props.GetString(FolderIcon, "..")
+
+	if pt.root == pt.pathSeparator {
+		pt.root = pt.Folders[0].Name
+		pt.Folders = pt.Folders[1:]
+	}
+
+	elements := []string{pt.root}
+	elements = append(elements, pt.Folders.List()...)
+
+	if maxWidth <= 0 {
+		return pt.colorizePath(pt.root, elements[1:])
+	}
+
+	n := len(pt.Folders)
+	separator := pt.getFolderSeparator()
+
+	for i := n - 2; i >= 0; i-- {
+		if len(strings.Join(elements, separator)) >= maxWidth {
+			break
+		}
+
+		elements[i] = folderIcon
+	}
+
+	// for i := 0; i < n; i++ {
+	// 	elements = append(elements, folderIcon)
+	// }
+
+	// if n > 0 {
+	// 	elements = append(elements, pt.Folders[n-1].Name)
+	// }
+
+	// if n <= 1 {
+	// 	return pt.colorizePath(pt.root, elements)
+	// }
+
+	// separator := pt.getFolderSeparator()
+
+	// // loop folders backwards
+	// for i := n - 2; i >= 0; i-- {
+	// 	if len(strings.Join(elements, separator)) <= maxWidth {
+	// 		elements[i] = pt.Folders[i].Name
+	// 		continue
+	// 	}
+
+	// 	break
+	// }
+
+	return pt.colorizePath(pt.root, elements[1:])
 }
 
 func (pt *Path) getAgnosterLeftPath() string {
