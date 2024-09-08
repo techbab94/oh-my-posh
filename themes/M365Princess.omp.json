@@ -89,7 +89,7 @@
           "background": "p:teal_blue",
           "foreground": "p:white",
           "properties": {
-            "time_format": "15:04"
+            "time_format": "3:04PM"
           },
           "style": "diamond",
           "template": " \u2665 {{ .CurrentDate | date .Format }} ",
